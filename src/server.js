@@ -34,7 +34,7 @@ app.get("/notes/:noteId", (req, res) => {
   });
 });
 
-app.get('/test-error', () => {
+app.get('/test-error', (req, res) => {
   throw new Error('Simulated server error');
 });
 
@@ -44,11 +44,12 @@ app.use((req, res, next) => {
   });
 });
 app.use((err, req, res, next) => {
+  req.log.error(err);
   res.status(500).json({
     message: err.message || "Internal Server Error"
   });
 });
 
 app.listen(PORT, () => {
-  console.log("Server running on port ${PORT}")
+  console.log(`Server running on port ${PORT}`)
 });
