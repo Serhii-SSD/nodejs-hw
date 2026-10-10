@@ -91,3 +91,27 @@ export const refreshUserSession = async (req, res, next) => {
     next(error);
   }
 };
+
+export const logoutUser = async (req, res, next) => {
+  try {
+    const { sessionId } = req.cookies;
+
+    if (sessionId) {
+      await Session.deleteOne({ _id: sessionId });
+    }
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'none',
+    };
+
+    res.clearCookie('sessionId', cookieOptions);
+    res.clearCookie('accessToken', cookieOptions);
+    res.clearCookie('refreshToken', cookieOptions);
+
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+};
