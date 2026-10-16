@@ -4,6 +4,9 @@ import { User } from '../models/user.js';
 import { Session } from '../models/session.js';
 import { createSession, setSessionCookies } from '../services/auth.js';
 import jwt from 'jsonwebtoken';
+import handlebars from 'handlebars';
+import path from 'node:path';
+import fs from 'node:fs/promises';
 import { sendEmail } from '../utils/sendEmail.js'
 
 export const registerUser = async (req, res, next) => {
@@ -130,36 +133,51 @@ export const logoutUser = async (req, res, next) => {
   }
 };
 
-export const requestResetEmail = async (req, res) => {
-  const { email } = req.body;
-
-  const user = await User.findOne({ email });
-if (!user) {
-    return res.status(200).json({
-      message: 'If this email exists, a reset link has been sent',
-    });
-}
-
-
-   const resetToken = jwt.sign(
-    { sub: user._id, email },
-    process.env.JWT_SECRET,
-    { expiresIn: '15m' },
-  );
-
+export const requestResetEmail = async (req, res, next) => {
   try {
-    await sendEmail({
-      from: process.env.SMTP_FROM,
-      to: email,
-      subject: 'Reset your password',
-      html: `<p>Click <a href="${resetToken}">here</a> to reset your password!</p>`,
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(200).json({
+        message: 'Password reset email sent successfully',
+      });
+    }
+
+    const resetToken = jwt.sign(
+      { sub: user._id, email },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' },
+    );
+
+    const templatePath = path.resolve('src/templates/reset-password-email.html');
+    const templateSource = await fs.readFile(templatePath, 'utf-8');
+    const template = handlebars.compile(templateSource);
+
+    const html = template({
+      name: user.username || user.email,
+      link: `${process.env.FRONTEND_DOMAIN}/reset-password?token=${resetToken}`,
     });
-  } catch {
-    throw createHttpError(500, 'Failed to send the email, please try again later.');
+
+    try {
+      await sendEmail({
+        to: email,
+        subject: 'Reset your password',
+        html,
+      });
+    } catch (error) {
+      console.error('SMTP ERROR DETAILS:', error);
+      throw createHttpError(
+        500,
+        'Failed to send the email, please try again later.',
+      );
+    }
+
+    res.status(200).json({
+      message: 'Password reset email sent successfully',
+    });
+  } catch (error) {
+    next(error);
   }
-
-
-  res.status(200).json({
-	message: 'Password reset email sent successfully'
-  });
-};
+}
