@@ -10,6 +10,7 @@ import notesRouter from './routes/notesRoutes.js';
 import { logger } from './middleware/logger.js';
 import { notFoundHandler } from './middleware/notFoundHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
+import userRoutes from './routes/userRoutes.js';
 
 dotenv.config();
 
@@ -21,8 +22,9 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors());
 
-app.use('/auth', authRoutes);
-app.use('/notes', notesRouter);
+app.use(authRoutes);
+app.use(notesRouter);
+app.use(userRoutes);
 
 app.use(notFoundHandler);
 
