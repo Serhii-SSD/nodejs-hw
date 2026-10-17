@@ -22,6 +22,7 @@
   "dependencies": {
     "bcrypt": "^6.0.0",
     "celebrate": "^16.0.0",
+    "cloudinary": "^2.11.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.6",
     "dotenv": "^18.0.1",
@@ -31,6 +32,8 @@
     "joi": "^18.2.9",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.10.2",
+    "multer": "^2.4.0",
+    "next-cloudinary": "^6.19.3",
     "nodemailer": "^10.1.1",
     "nodemon": "^3.1.14",
     "pino": "^10.3.1",
